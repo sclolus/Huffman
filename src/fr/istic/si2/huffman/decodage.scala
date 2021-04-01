@@ -50,10 +50,14 @@ object Decodage {
    * @param h un arbre de Huffman
    * @return la chaîne correspondant au décodage de l, selon h, si elle existe
    */
+  // TODO: fix this: should have none case
   def decode(l: List[Bit], h: Huffman): Option[String] = {
     val (sym, tail) = decodeSymbol(h, l)
 
-    Some(sym.map(c => "" + c).getOrElse("") + decode(tail, h).getOrElse(""))
+    Some(sym.map(c => "" + c).getOrElse("") + (tail match {
+      case Nil  => ""
+      case t @ _ => decode(t, h).getOrElse("")
+    }))
   }
 
   /**

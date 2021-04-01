@@ -1,6 +1,7 @@
 package fr.istic.si2.huffman
 
 import scala.io.Source
+import annotation.tailrec // Let's make tail recursion...
 import java.io.{ File, PrintWriter }
 
 object Utils {
@@ -10,10 +11,23 @@ object Utils {
    * @return la chaîne de 0 et 1 où chaque bit de l est représenté par 0 ou 1, dans l'ordre
    */
   def listBitToString(l: List[Bit]): String = {
-    l match {
-      case Nil          => ""
-      case head :: tail => if (head == Zero) { "0" } else { "1" } + listBitToString(tail)
+    @tailrec
+    def listBitToStringTailRecursive(l: List[Bit], acc: String): String = {
+      l match {
+        case Nil => acc
+        case head :: tail => {
+          val head_value = if (head == Zero) {
+            "0"
+          } else {
+            "1"
+          }
+
+          listBitToStringTailRecursive(tail, acc + head_value)
+        }
+      }
     }
+
+    listBitToStringTailRecursive(l, "")
   }
 
   /**
@@ -24,8 +38,8 @@ object Utils {
   def vers16Bits(s: String): String = {
     s.toList.map(c => String.format("%16s", c.toBinaryString).replace(' ', '0')).foldLeft("")((acc, e) => acc + e)
   }
-  
-   /**
+
+  /**
    * @param s une chaine de caractere représentant un Char par une succession de 1 et de 0
    * @return le Char representé par `s`
    */
@@ -33,7 +47,7 @@ object Utils {
     def conversion(l: List[Char]): Char = {
       l match {
         case Nil          => 0
-        case head :: tail => (if (head == '1') { 1 } else { 0 } + 2 * conversion(tail)).toChar
+        case head :: tail => ((if (head == '1') { 1 } else { 0 }) + 2 * conversion(tail)).toChar
       }
     }
     conversion(s.toList.reverse)
@@ -90,14 +104,13 @@ object Utils {
       case _   => sys.error("Unknown bit character: " + c)
     }
   }
-  
+
   /**
    * @param s une chaîne de 0 et 1 uniquement
    * @return la liste de bits correspondant à s
    */
-  def stringToListBit(s: String) : List[Bit] = {
+  def stringToListBit(s: String): List[Bit] = {
     s.toList.map(charToBit)
   }
-  
-  
+
 }

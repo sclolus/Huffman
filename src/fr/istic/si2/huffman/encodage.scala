@@ -57,7 +57,9 @@ object Encodage {
    * @return l'encodage de s, selon h, en une liste de bits.
    *         (concaténation de l'encodage de chaque caractère de s selon h)
    */
-  def encode(s: String, h: Huffman): List[Bit] = ???
+  def encode(s: String, h: Huffman): List[Bit] = {
+    encodeList(s.toList, h)
+  }
 
   /**
    * @param h un arbre de Huffman
@@ -79,6 +81,6 @@ object Encodage {
    */
   def encode(message: String): String = {
     val arbre = codeHuffman(analyseFrequences(message))
-      descriptionHuffman(arbre) + listBitToString(encodeList(message.toList, arbre))
+      descriptionHuffman(arbre) + listBitToString(encode(message, arbre))
   }
 }

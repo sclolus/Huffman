@@ -110,7 +110,7 @@ object ConstructionCode {
    * @return la frequence de `c` dans `s`
    */
   def frequencyInString(c: Char, s: String): Double = {
-    s.toList.count((current_c) => c == current_c) / s.length
+    s.toList.count((current_c) => c == current_c).asInstanceOf[Double] / s.length.asInstanceOf[Double]
   }
   
   /**
