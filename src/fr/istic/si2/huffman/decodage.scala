@@ -54,10 +54,18 @@ object Decodage {
   def decode(l: List[Bit], h: Huffman): Option[String] = {
     val (sym, tail) = decodeSymbol(h, l)
 
-    Some(sym.map(c => "" + c).getOrElse("") + (tail match {
-      case Nil  => ""
-      case t @ _ => decode(t, h).getOrElse("")
-    }))
+    //sym.map(c => c.toString).map(head => decode(tail, h).map(ttail => head + ttail)).flatten
+    
+//    Some(sym.map(c => "" + c).getOrElse("") + (tail match {
+//      case Nil  => ""
+//      case t @ _ => decode(t, h).getOrElse("")
+//    }))
+    tail match {
+      case Nil => None
+      case t @ _ => {
+        sym.map(c => c.ToString)
+      }
+    }
   }
 
   /**
