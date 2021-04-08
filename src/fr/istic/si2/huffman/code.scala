@@ -81,7 +81,7 @@ object ConstructionCode {
       }
       case Nil          => List() // Shall never happen
       case head :: tail => List() // Shall never Happen
-    }
+    } // TODO: Here triSelonFreq should be called
   }
 
   /**
@@ -90,7 +90,7 @@ object ConstructionCode {
    *         et 2 par 2, les arbres de l de fréquences minimales
    */
   def fusion(l: List[Huffman]): Huffman = {
-    l match {
+    l match { // TODO : Here triSelonFreq should not be called
       case last :: Nil => last
       case _           => fusion(uneFusion(triSelonFreq(l)))
     }

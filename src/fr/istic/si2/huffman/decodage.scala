@@ -54,18 +54,18 @@ object Decodage {
   def decode(l: List[Bit], h: Huffman): Option[String] = {
     val (sym, tail) = decodeSymbol(h, l)
 
-    //sym.map(c => c.toString).map(head => decode(tail, h).map(ttail => head + ttail)).flatten
+    sym.map(c => c.toString).map(head => decode(tail, h).map(ttail => head + ttail)).flatten
     
 //    Some(sym.map(c => "" + c).getOrElse("") + (tail match {
 //      case Nil  => ""
 //      case t @ _ => decode(t, h).getOrElse("")
 //    }))
-    tail match {
-      case Nil => None
-      case t @ _ => {
-        sym.map(c => c.ToString)
-      }
-    }
+//    tail match {
+//      case Nil => None
+//      case t @ _ => {
+//        sym.map(c => c.ToString)
+//      }
+//    }
   }
 
   /**
@@ -84,6 +84,7 @@ object Decodage {
         val (one, leftleftover) = lireDescription(leftover)
         (Noeud(0.0, zero, one), leftleftover)
       }
+      case Nil => sys.error("lireDescription was fed a none valid representation") // Should never happen by specification
     }
   }
 

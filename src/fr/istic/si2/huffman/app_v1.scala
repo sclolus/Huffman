@@ -34,38 +34,42 @@ object HuffmanApp1 extends App {
           Feuille(0.07, 'f'),
           Feuille(0.06, 'g')),
         Feuille(0.09, 'e'))))
-        
-   var again = true
-   
-   while (again) {
+
+  /**
+   * @return Si la boucle doit continuer
+   */
+  def mainLoop(): Boolean = {
     println("Chaîne à encoder ? ")
     val string_to_encode = StdIn.readLine()
-    
+
     println("Chaîne encodée standard :")
     val encodage_standard = vers16Bits(string_to_encode)
     println("\t" + encodage_standard)
     println("\ttaille (nb Bits) : " + encodage_standard.length)
-    
+
     val encodage_huffman = encodeList(string_to_encode.toList, h)
     println("Chaïne encodée Huffman: ")
     println("\t" + listBitToString(encodage_huffman))
     println("\ttaille (nb Bits): " + encodage_huffman.length)
-    
+
     // TOPO FIX THIS
     val decoded_string = decode(encodage_huffman, h).getOrElse("")
     println("Chaîne décodée Huffman: ")
     println("\t" + decoded_string)
-    
+
     if (string_to_encode.length != decoded_string.length) {
       println("Erreur ou caractère(s) non encodable(s)")
     }
-      
+
     println("Encore ? [Y/n]")
     val again_char = StdIn.readChar()
-    
-    again_char match {
-      case 'Y' | 'y' => again = true // actually does nothing...
-      case _ => again = false
-    }
-   }
+
+    (again_char match {
+      case 'Y' | 'y' => true
+      case _         => false
+    })
+  }
+
+  while (mainLoop()) {} // Emulation d'un do while...
+
 }
