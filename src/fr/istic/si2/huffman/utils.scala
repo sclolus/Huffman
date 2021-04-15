@@ -42,7 +42,7 @@ object Utils {
     }
     // TODO: Custom reverse implementation ?
     conversion(s.toList.reverse)
-  }
+  } // TODO: Is from16Bits really necessary ?
 
   /**
    * Lit le contenu d'un fichier sur disque.

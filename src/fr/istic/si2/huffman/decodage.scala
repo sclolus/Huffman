@@ -35,22 +35,11 @@ object Decodage {
     (h, l) match {
       case (Feuille(_, c), list) => (Some(c), list)
       case (Noeud(_, zero, one), head :: tail) => {
-        val (sym, new_tail) = (if (head == Zero) {
+        (if (head == Zero) {
           decodeSymbol(zero, tail)
         } else {
           decodeSymbol(one, tail)
         })
-
-        sym match {
-          case None    => (None, tail)
-          // In case the character cannot be decoded,
-          // we return the list of bits with the first bit removed
-          // instead of consuming the whole list.
-          // TODO: Do we really want this ? Seems likely that an already too short list
-          // remains too short, although not certain
-          case Some(_) => (sym, new_tail)
-        }
-
       }
       case (Noeud(_, _, _), Nil) => (None, Nil)
     }
@@ -59,24 +48,28 @@ object Decodage {
   /**
    * @param l une liste de bits
    * @param h un arbre de Huffman
-   * @return la chaîne correspondant au décodage de l, selon h, si elle existe
+   * @return la chaîne correspondant au décodage de l, selon h, si elle existe.
+   * Dans le cas où un caractere ne pourrait etre decode, la liste de bit
+   * n'est pas assez grande par rapport au chemin pris dans l'arbre.
+   * Bien que cette liste privee du premier bit pourrait etre suffisemment
+   * grande pour donner un charactere decompresse (car elle pourrait prendre un
+   * tout autre chemin), ce comportement ne pourrait de toute facon n'avoir lieux
+   * qu'en fin de message, ce qui indique qu'il est plus coherent de simplement decider
+   * ce suffix de bit indecodable comme superflu et erone.
    */
-  // TODO: Justifier les choix
   def decode(l: List[Bit], h: Huffman): Option[String] = {
     val (sym, tail) = decodeSymbol(h, l)
-//
-  //  println(l + " decoded: " + sym + " tail: " + tail)
+
     val tail_string = tail match {
       case Nil    => None
       case _ :: _ => decode(tail, h)
     }
-   // println(tail_string)
-
+   
     (sym, tail_string) match {
-      case (Some(c), Some(string)) => Some(c + string)
+      case (Some(c), Some(string)) => Some(c + string) // If there is both a decoded char and a decoded string, concatenate them
       case (Some(c), None)         => Some(c.toString) // If only the first char can be decoded take it
-      case (None, Some(string))    => Some(string) // Or if the first char cannot be decoded but the rest can, take the rest
-      case (None, None)            => None // But if neither can be decoded, no string is created
+      case (None, _)            => None // But if neither can be decoded, no string is created
+      // Note that (None, Some(_)) cannot actually happen since decodeSymbol always consumn the whole list of bits if a char cannot be decoded
     }
   }
 
@@ -102,14 +95,14 @@ object Decodage {
    * @return La liste `l` privée de ces `n`, au maximum, premiers éléments
    */
   def dropBitList(n: Int, l: List[Bit]): List[Bit] = {
-      l match {
-        case Nil => Nil
-        case head :: tail => if (n != 0) { 
-            dropBitList(n - 1, tail)
-          } else {
-            head :: dropBitList(0, tail)
-          }
+    l match {
+      case Nil => Nil
+      case head :: tail => if (n != 0) {
+        dropBitList(n - 1, tail)
+      } else {
+        head :: dropBitList(0, tail)
       }
+    }
   }
 
   /**

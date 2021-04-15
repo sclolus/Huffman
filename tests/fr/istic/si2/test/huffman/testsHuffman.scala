@@ -15,11 +15,14 @@ class TestsHuffman {
 
   val _ = new AppInit(HuffmanApp0) // Ne pas supprimer cette ligne.
 
-  // TODO A vous de compléter les jeux de test !
   // Vous devrez tester soigneusement chacune de vos fonctions.
 
   val zero_string = "0" // Workaround scalastyle warning issued because "0" is repeated too often in the file...
   val one_string = "1" // Similarly
+  val onezero_string = "10"
+  val a_string = "a"
+  val b_string = "b"
+  val c_string = "c"
 
   val delta = 0.01 // Globlal precision for Double comparaisons
 
@@ -127,9 +130,7 @@ class TestsHuffman {
 
     assertEquals((Some('a'), Nil), decodeSymbol(h, Zero :: Zero :: Nil))
     assertEquals((Some('b'), One :: One :: Zero :: One :: Nil), decodeSymbol(h, One :: Zero :: One :: One :: Zero :: One :: Nil))
-    //assertEquals((None, Nil), decodeSymbol(h, Zero :: One :: Nil))
-    assertEquals((None, One :: Nil), decodeSymbol(h, Zero :: One :: Nil))
-    // TODO : ascertain that the case (None, NonEmptyList) doesn't exist
+    assertEquals((None, Nil), decodeSymbol(h, Zero :: One :: Nil))
   }
 
   /**
@@ -159,11 +160,9 @@ class TestsHuffman {
 
     assertEquals(None, decode(Nil, h))
     assertEquals(Some("bg"), decode(One :: Zero :: One :: One :: Zero :: One :: Nil, h))
-    assertEquals(Some("b"), decode(One :: Zero :: One :: Nil, h))
-    assertEquals(None, decode(Zero :: One :: One :: Zero :: Nil, h))
-
-    // TODO : ascertain that there is no cases of badly encoded characters in the middle of a string
-    // That is, that the only case of failure of decoding a char is at the end of the list of bits
+    assertEquals(Some(b_string), decode(One :: Zero :: One :: Nil, h))
+    assertEquals(Some("d"), decode(Zero :: One :: One :: Zero :: Nil, h))
+    assertEquals(None, decode(One :: Nil, h))
   }
 
   /**
@@ -184,11 +183,13 @@ class TestsHuffman {
   def testTriSelonFreq() {
     val l = Feuille(0.66, 'c') :: Feuille(0.33, 'b') :: Feuille(0.16, 'c') :: Nil
     val expected = Feuille(0.16, 'c') :: Feuille(0.33, 'b') :: Feuille(0.66, 'c') :: Nil
+    val l2 = Feuille(0.01, 'd') :: l
+    val expected_2 = Feuille(0.01, 'd') :: expected
 
     assertEqualsListHuffman(Nil, triSelonFreq(Nil), delta)
     assertEqualsListHuffman(Feuille(1.0, 'a') :: Nil, triSelonFreq(Feuille(1.0, 'a') :: Nil), delta)
     assertEqualsListHuffman(expected, triSelonFreq(l), delta)
-    // TODO: Some more
+    assertEqualsListHuffman(expected_2, triSelonFreq(l2), delta)
   }
 
   /**
@@ -400,7 +401,7 @@ class TestsHuffman {
   @Test
   def testFrequencyInString() {
     val number_string = "1111223"
-    
+
     assertEquals(0.0, frequencyInString('a', ""), delta)
     assertEquals(1.0, frequencyInString('a', "aaaaaaaaa"), delta)
     assertEquals(1.0 / 3.0, frequencyInString('b', "abcabcabc"), delta)
@@ -437,16 +438,18 @@ class TestsHuffman {
    */
   @Test
   def testListOfCharToListOfCharAndFrequencies() {
-    assertEqualsListCharDouble(Nil, listOfCharToListOfCharAndFrequencies(Nil, "a"), delta)
+    assertEqualsListCharDouble(Nil, listOfCharToListOfCharAndFrequencies(Nil, a_string), delta)
     assertEqualsListCharDouble(
       ('z', 0.0) :: ('w', 0.0) :: ('x', 0.0) :: Nil,
       listOfCharToListOfCharAndFrequencies('z' :: 'w' :: 'x' :: Nil, "abcdefghijklmnopqrstuvy"), delta)
 
-    assertEqualsListCharDouble(('a', 0.333) :: ('b', 0.333) :: ('c', 0.333) :: Nil,
-        listOfCharToListOfCharAndFrequencies('a' :: 'b' :: 'c' :: Nil, "abcabcabc"), delta)
-        
-    assertEqualsListCharDouble(('1', 4.0 / 7.0) :: ('2', 2.0 / 7.0) :: ('3', 1.0 / 7.0) :: Nil,
-        listOfCharToListOfCharAndFrequencies('1' :: '2' :: '3' :: Nil, "1111223"), delta)
+    assertEqualsListCharDouble(
+      ('a', 0.333) :: ('b', 0.333) :: ('c', 0.333) :: Nil,
+      listOfCharToListOfCharAndFrequencies('a' :: 'b' :: 'c' :: Nil, "abcabcabc"), delta)
+
+    assertEqualsListCharDouble(
+      ('1', 4.0 / 7.0) :: ('2', 2.0 / 7.0) :: ('3', 1.0 / 7.0) :: Nil,
+      listOfCharToListOfCharAndFrequencies('1' :: '2' :: '3' :: Nil, "1111223"), delta)
   }
 
   /**
@@ -465,7 +468,7 @@ class TestsHuffman {
    */
   @Test
   def testDescriptionHuffman() {
-    assertEquals(zero_string + vers16Bits("a"), descriptionHuffman(Feuille(0.0, 'a')))
+    assertEquals(zero_string + vers16Bits(a_string), descriptionHuffman(Feuille(0.0, 'a')))
 
     val h1 = Noeud(
       1.00,
@@ -475,7 +478,7 @@ class TestsHuffman {
         Feuille(0.25, 'a'),
         Feuille(0.25, 'b')))
 
-    val expected_1 = one_string + zero_string + vers16Bits("c") + one_string + zero_string + vers16Bits("a") + zero_string + vers16Bits("b")
+    val expected_1 = one_string + zero_string + vers16Bits(c_string) + one_string + zero_string + vers16Bits(a_string) + zero_string + vers16Bits(b_string)
 
     assertEquals(expected_1, descriptionHuffman(h1))
 
@@ -499,15 +502,16 @@ class TestsHuffman {
             Feuille(0.06, 'g')),
           Feuille(0.09, 'e'))))
 
-    val expected_2 = one_string + one_string + zero_string + vers16Bits("a") + one_string + zero_string + vers16Bits("c") +
+    val expected_2 = one_string + one_string + zero_string + vers16Bits(a_string) + one_string + zero_string + vers16Bits(c_string) +
       zero_string + vers16Bits("d") + one_string +
-      zero_string + vers16Bits("b") + one_string + one_string + zero_string + vers16Bits("f") + zero_string + vers16Bits("g") + zero_string + vers16Bits("e")
+      zero_string + vers16Bits(b_string) + one_string + one_string + zero_string +
+      vers16Bits("f") + zero_string + vers16Bits("g") + zero_string + vers16Bits("e")
 
     assertEquals(expected_2, descriptionHuffman(h2))
   }
 
   /**
-   * Test de descriptionEncodet()
+   * Test de descriptionEncode()
    */
   @Test
   def testEncode() {
@@ -542,6 +546,18 @@ class TestsHuffman {
    */
   @Test
   def testLireDescription() {
+    assertEquals((Feuille(0.0, 'z'), Nil), lireDescription(stringToListBit(zero_string + vers16Bits("z"))))
+    assertEquals(
+      (Noeud(0.0, Feuille(0.0, 'a'), Feuille(0.0, 'b')), Nil),
+      lireDescription(stringToListBit(onezero_string + vers16Bits(a_string) + zero_string + vers16Bits(b_string))))
+    assertEquals(
+      (Noeud(0.0, Feuille(0.0, 'a'), Feuille(0.0, 'b')), Zero :: One :: Zero :: One :: Nil),
+      lireDescription(stringToListBit(onezero_string + vers16Bits(a_string) + zero_string + vers16Bits(b_string) + "0101")))
+
+    assertEquals(
+      (Noeud(0.0, Feuille(0.0, 'a'), Noeud(0.0, Feuille(0.0, 'b'), Feuille(0.0, 'c'))), Zero :: One :: Zero :: One :: Nil),
+      lireDescription(stringToListBit(onezero_string + vers16Bits(a_string) + onezero_string +
+        vers16Bits(b_string) + zero_string + vers16Bits(c_string) + "0101")))
 
   }
 
@@ -550,10 +566,33 @@ class TestsHuffman {
    */
   @Test
   def testDecode2() {
-
+    assertEquals("", decode(onezero_string + vers16Bits(a_string) + zero_string + vers16Bits(b_string)))
+    assertEquals("abab", decode(onezero_string + vers16Bits(a_string) + zero_string + vers16Bits(b_string) + "0101"))
+    assertEquals("", decode(onezero_string + vers16Bits(a_string) + onezero_string + vers16Bits(b_string) + zero_string + vers16Bits(c_string)))
+    assertEquals("ccabb", decode(onezero_string + vers16Bits(a_string) + onezero_string + vers16Bits(b_string) +
+      zero_string + vers16Bits(c_string) + "111101010"))
+    assertEquals(a_string, decode(zero_string + vers16Bits(a_string)))
+    assertEquals(a_string, decode(zero_string + vers16Bits(a_string) + zero_string))
   }
 
+  /**
+   * Test de from16Bits()
+   */
+  @Test
   def testFrom16Bits() {
-    // TODO: testFrom16Bits()
+    assertEquals('a', from16Bits(vers16Bits("a")))
+    assertEquals('b', from16Bits(vers16Bits("b")))
+    assertEquals('c', from16Bits(vers16Bits(c_string)))
+    assertEquals('d', from16Bits(vers16Bits("d")))
+    assertEquals('A', from16Bits(vers16Bits("A")))
+    assertEquals('B', from16Bits(vers16Bits("B")))
+    assertEquals('C', from16Bits(vers16Bits("C")))
+    assertEquals('D', from16Bits(vers16Bits("D")))
+    assertEquals('Z', from16Bits(vers16Bits("Z")))
+    assertEquals('1', from16Bits(vers16Bits("1")))
+    assertEquals('0', from16Bits(vers16Bits("0")))
+    assertEquals('!', from16Bits(vers16Bits("!")))
+    assertEquals(';', from16Bits(vers16Bits(";")))
+    assertEquals('@', from16Bits(vers16Bits("@")))
   }
 }

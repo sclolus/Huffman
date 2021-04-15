@@ -5,7 +5,7 @@ import Encodage._
 import Decodage._
 import Utils._
 import ConstructionCode._
-// TODO: Remove all the tailrec annoation in the whole project
+
 /**
  * Application principale V3 : avec transmission du code
  */
