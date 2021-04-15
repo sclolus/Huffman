@@ -399,13 +399,15 @@ class TestsHuffman {
    */
   @Test
   def testFrequencyInString() {
+    val number_string = "1111223"
+    
     assertEquals(0.0, frequencyInString('a', ""), delta)
     assertEquals(1.0, frequencyInString('a', "aaaaaaaaa"), delta)
     assertEquals(1.0 / 3.0, frequencyInString('b', "abcabcabc"), delta)
-    assertEquals(4.0 / 7.0, frequencyInString('1', "1111223"), delta)
-    assertEquals(2.0 / 7.0, frequencyInString('2', "1111223"), delta)
-    assertEquals(1.0 / 7.0, frequencyInString('3', "1111223"), delta)
-    assertEquals(0.0, frequencyInString('4', "1111223"), delta)
+    assertEquals(4.0 / 7.0, frequencyInString('1', number_string), delta)
+    assertEquals(2.0 / 7.0, frequencyInString('2', number_string), delta)
+    assertEquals(1.0 / 7.0, frequencyInString('3', number_string), delta)
+    assertEquals(0.0, frequencyInString('4', number_string), delta)
   }
 
   /**

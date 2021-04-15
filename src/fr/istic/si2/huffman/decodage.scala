@@ -64,13 +64,13 @@ object Decodage {
   // TODO: Justifier les choix
   def decode(l: List[Bit], h: Huffman): Option[String] = {
     val (sym, tail) = decodeSymbol(h, l)
-
-    println(l + " decoded: " + sym + " tail: " + tail)
+//
+  //  println(l + " decoded: " + sym + " tail: " + tail)
     val tail_string = tail match {
       case Nil    => None
       case _ :: _ => decode(tail, h)
     }
-    println(tail_string)
+   // println(tail_string)
 
     (sym, tail_string) match {
       case (Some(c), Some(string)) => Some(c + string)

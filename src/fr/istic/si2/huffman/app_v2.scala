@@ -30,21 +30,32 @@ object HuffmanApp2 extends App {
    * @return si la boucle doit continuer
    */
   def mainLoop(): Boolean = {
-      // TODO: Does this demonstrate all the features ?
     println("Fichier à encoder ? ")
     val filename_to_encode = StdIn.readLine()
 
     val file_content = lireFichier(filename_to_encode)
     val standard_encoding = vers16Bits(file_content)
+    
+    println("========== Contenu du fichier =========")
+    println(file_content)
+    println("=======================================")
+    println("===== Contenu en encodage standard ====")
+    println(standard_encoding)
+    println("=======================================")
+    
 
     val lfreqs = analyseFrequences(file_content)
-
-    println(lfreqs)
+    println("Couples charactère-frèquences: " + lfreqs)
+    
     val h: Huffman = codeHuffman(lfreqs)
-
+    println("Arbre de Huffman correspondant: " + h)
+    
     val encoded: List[Bit] = encode(file_content, h)
     val encoded_string = listBitToString(encoded)
-
+    println("========== Contenu compressé ==========")
+    println(encoded_string)
+    println("=======================================")
+    
     val encoded_filename = filename_to_encode + "_compressed"
     ecrireFichier(encoded_filename, encoded_string)
     println("Le fichier compressé a été écrit à " + encoded_filename)

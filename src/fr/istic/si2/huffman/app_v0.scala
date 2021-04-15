@@ -9,8 +9,6 @@ import Utils._
  * Application principale V0 : arbre de code fixé, encodage/décodage de caractères
  */
 object HuffmanApp0 extends App {
- // TODO: Does this demonstrate all the features ?
-  
   /**
    * Arbre de code utilisé par l'application principale
    */
@@ -41,8 +39,12 @@ object HuffmanApp0 extends App {
     encodeSymbol(char, h) match {
       case Some(bit_list) => {
         val corresponding_string = listBitToString(bit_list)
-        println("" + char + " " + bit_list + " " + corresponding_string)
+        val decoded_char = decodeSymbolv0(h, bit_list)
 
+        println("" + char + " " + bit_list + " " + corresponding_string + " " + (decoded_char match {
+          case Some(char) => char
+          case None       => "Le charactère n'a pas pu être décodé" // Should never happen...
+        }))
       }
       case None => println("Ce caractère ne peut être encodé.")
     }

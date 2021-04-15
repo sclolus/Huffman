@@ -39,7 +39,6 @@ object HuffmanApp1 extends App {
    * @return Si la boucle doit continuer
    */
   def mainLoop(): Boolean = {
-     // TODO: Does this demonstrate all the features ?
     println("Chaîne à encoder ? ")
     val string_to_encode = StdIn.readLine()
 
@@ -53,12 +52,21 @@ object HuffmanApp1 extends App {
     println("\t" + listBitToString(encodage_huffman))
     println("\ttaille (nb Bits): " + encodage_huffman.length)
 
-    // TOPO FIX THIS
-    val decoded_string = decode(encodage_huffman, h).getOrElse("")
-    println("Chaîne décodée Huffman: ")
-    println("\t" + decoded_string)
+    val decoded_string = decode(encodage_huffman, h)
+    
+    val decoded_string_length = decoded_string match {
+      case Some(string) => {
+        println("Chaîne décodée Huffman: ")
+        println("\t" + string)
+        string.length
+      }
+      case None => {
+        println("La chaîne n'a pu être décodée")
+        -1
+      }
+    }
 
-    if (string_to_encode.length != decoded_string.length) {
+    if (string_to_encode.length != decoded_string_length) {
       println("Erreur ou caractère(s) non encodable(s)")
     }
 
