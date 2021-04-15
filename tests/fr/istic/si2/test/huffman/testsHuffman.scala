@@ -18,6 +18,11 @@ class TestsHuffman {
   // TODO A vous de compléter les jeux de test !
   // Vous devrez tester soigneusement chacune de vos fonctions.
 
+  val zero_string = "0" // Workaround scalastyle warning issued because "0" is repeated too often in the file...
+  val one_string = "1" // Similarly
+
+  val delta = 0.01 // Globlal precision for Double comparaisons
+
   /**
    * Test du decodage d'un caractère V0
    */
@@ -67,8 +72,8 @@ class TestsHuffman {
   @Test
   def testlistBitToString() {
     assertEquals("", listBitToString(Nil))
-    assertEquals("0", listBitToString(Zero :: Nil))
-    assertEquals("1", listBitToString(One :: Nil))
+    assertEquals(zero_string, listBitToString(Zero :: Nil))
+    assertEquals(one_string, listBitToString(One :: Nil))
     assertEquals("010", listBitToString(Zero :: One :: Zero :: Nil))
   }
 
@@ -122,12 +127,13 @@ class TestsHuffman {
 
     assertEquals((Some('a'), Nil), decodeSymbol(h, Zero :: Zero :: Nil))
     assertEquals((Some('b'), One :: One :: Zero :: One :: Nil), decodeSymbol(h, One :: Zero :: One :: One :: Zero :: One :: Nil))
-    assertEquals((None, Nil), decodeSymbol(h, Zero :: One :: Nil))
+    //assertEquals((None, Nil), decodeSymbol(h, Zero :: One :: Nil))
+    assertEquals((None, One :: Nil), decodeSymbol(h, Zero :: One :: Nil))
     // TODO : ascertain that the case (None, NonEmptyList) doesn't exist
   }
 
   /**
-   * Test de decode()
+   * Test de decode(), première implémentation
    */
   @Test
   def testDecode() {
@@ -151,11 +157,12 @@ class TestsHuffman {
             Feuille(0.06, 'g')),
           Feuille(0.09, 'e'))))
 
-    assertEquals(None, decode(Nil, h)) // TODO : Is it Some("") Or Nil ?
+    assertEquals(None, decode(Nil, h))
     assertEquals(Some("bg"), decode(One :: Zero :: One :: One :: Zero :: One :: Nil, h))
-    assertEquals(None, decode(One :: Zero :: One :: Nil, h))
+    assertEquals(Some("b"), decode(One :: Zero :: One :: Nil, h))
+    assertEquals(None, decode(Zero :: One :: One :: Zero :: Nil, h))
 
-    // TODO : ascertain that there is no cases of badly encoded caracteres in the middle of a string
+    // TODO : ascertain that there is no cases of badly encoded characters in the middle of a string
     // That is, that the only case of failure of decoding a char is at the end of the list of bits
   }
 
@@ -164,9 +171,10 @@ class TestsHuffman {
    */
   @Test
   def testInitHuffman() {
-    assertEquals(Nil, initHuffman(Nil))
-    assertEquals(List(Feuille(0.5, 'a'), Feuille(0.5, 'b')), initHuffman(('a', 0.5) :: ('b', 0.5) :: Nil))
-    assertEquals(List(Feuille(0.5, 'a')), initHuffman(('a', 0.5) :: Nil))
+    assertEqualsListHuffman(Nil, initHuffman(Nil), delta)
+    assertEqualsListHuffman(List(Feuille(0.5, 'a'), Feuille(0.5, 'b')), initHuffman(('a', 0.5) :: ('b', 0.5) :: Nil), delta)
+    assertEqualsListHuffman(List(Feuille(0.5, 'a')), initHuffman(('a', 0.5) :: Nil), delta)
+    assertEqualsListHuffman(List(Feuille(0.3, 'a'), Feuille(0.3, 'b'), Feuille(0.3, 'c')), initHuffman(('a', 0.3) :: ('b', 0.3) :: ('c', 0.3) :: Nil), delta)
   }
 
   /**
@@ -177,10 +185,19 @@ class TestsHuffman {
     val l = Feuille(0.66, 'c') :: Feuille(0.33, 'b') :: Feuille(0.16, 'c') :: Nil
     val expected = Feuille(0.16, 'c') :: Feuille(0.33, 'b') :: Feuille(0.66, 'c') :: Nil
 
-    assertEquals(Nil, triSelonFreq(Nil))
-    assertEquals(Feuille(1.0, 'a') :: Nil, triSelonFreq(Feuille(1.0, 'a') :: Nil))
-    assertEquals(expected, triSelonFreq(l))
+    assertEqualsListHuffman(Nil, triSelonFreq(Nil), delta)
+    assertEqualsListHuffman(Feuille(1.0, 'a') :: Nil, triSelonFreq(Feuille(1.0, 'a') :: Nil), delta)
+    assertEqualsListHuffman(expected, triSelonFreq(l), delta)
     // TODO: Some more
+  }
+
+  /**
+   * Test de getFreq()
+   */
+  @Test
+  def testGetFreq() {
+    assertEquals(0.5, getFreq(Feuille(0.5, 'a')), delta)
+    assertEquals(1.0, getFreq(Noeud(1.0, Feuille(0.5, 'a'), Feuille(0.5, 'b'))), delta)
   }
 
   /**
@@ -188,7 +205,37 @@ class TestsHuffman {
    */
   @Test
   def testUneFusion() {
-  // TODO:
+    assertEqualsListHuffman(
+      Noeud(
+        1.0,
+        Feuille(0.5, 'a'),
+        Feuille(0.5, 'b')) :: Nil,
+      uneFusion(Feuille(0.5, 'a') :: Feuille(0.5, 'b') :: Nil), delta)
+
+    val expected_1 = Noeud(
+      0.3,
+      Feuille(0.1, 'a'),
+      Feuille(0.2, 'b')) :: Feuille(0.7, 'c') :: Nil
+
+    assertEqualsListHuffman(expected_1, uneFusion(Feuille(0.7, 'c') :: Feuille(0.2, 'b') :: Feuille(0.1, 'a') :: Nil), delta)
+
+    val expected_2 = Noeud(
+      1.0,
+      Noeud(
+        0.3,
+        Feuille(0.1, 'a'),
+        Feuille(0.2, 'b')),
+      Feuille(0.7, 'c')) :: Nil
+
+    assertEqualsListHuffman(expected_2, uneFusion(expected_1), delta)
+
+    val expected_3 = Noeud(
+      0.3,
+      Feuille(0.1, 'a'),
+      Feuille(0.2, 'b')) :: Feuille(0.3, 'c') :: Feuille(0.4, 'd') :: Nil
+
+    // Are all nodes sorted ?
+    assertEqualsListHuffman(expected_3, uneFusion(Feuille(0.4, 'd') :: Feuille(0.3, 'c') :: Feuille(0.2, 'b') :: Feuille(0.1, 'a') :: Nil), delta)
   }
 
   /**
@@ -297,12 +344,32 @@ class TestsHuffman {
     }
   }
 
+  //  /**
+  //   * Verifie que `expected` et `result` sont egales, en comparant les Doubles avec
+  //   * la precision d. Echoue si ce n'est pas le cas.
+  //   * @param expected une liste de tuple de Double et de Char
+  //   * @param result une liste de tuple de Double et de Char
+  //   * @param d un Double
+  //   */
+  //  def assertEqualsListDoubleChar(expected: List[(Double, Char)], result: List[(Double, Char)], d: Double): Unit = {
+  //    (expected, result) match {
+  //      // Since someone had the brilliant idea to
+  //      // put both List[(Double, Char)] and List[(Char, Double)] in the signatures...
+  //      case (Nil, Nil) => ()
+  //      case ((f1, c1) :: t1, (f2, c2) :: t2) => {
+  //        assertEquals(c1, c2)
+  //        assertEquals(f1, f2, d)
+  //        assertEqualsListDoubleChar(t1, t2, d)
+  //      }
+  //      case _ => fail("Les deux listes n'ont pas le meme nombre d'elements")
+  //    }
+  //  }
+
   /**
    * Test de codeHuffman()
    */
   @Test
   def testCodeHuffman() {
-    val delta = 0.01
     val l1 = ('a', 1.0 / 3.0) :: ('b', 1.0 / 3.0) :: ('c', 1.0 / 3.0) :: Nil
     val expected_1 = Noeud(
       1.0,
@@ -318,12 +385,73 @@ class TestsHuffman {
   }
 
   /**
+   * Test de countInstancesOf()
+   */
+  @Test
+  def testCountInstancesOf() {
+    assertEquals(0, countInstancesOf('a', Nil))
+    assertEquals(1, countInstancesOf('a', 'a' :: Nil))
+    assertEquals(3, countInstancesOf('b', 'a' :: 'b' :: 'c' :: 'a' :: 'b' :: 'c' :: 'a' :: 'b' :: 'c' :: Nil))
+  }
+
+  /**
+   * Test de frequencyInString()
+   */
+  @Test
+  def testFrequencyInString() {
+    assertEquals(0.0, frequencyInString('a', ""), delta)
+    assertEquals(1.0, frequencyInString('a', "aaaaaaaaa"), delta)
+    assertEquals(1.0 / 3.0, frequencyInString('b', "abcabcabc"), delta)
+    assertEquals(4.0 / 7.0, frequencyInString('1', "1111223"), delta)
+    assertEquals(2.0 / 7.0, frequencyInString('2', "1111223"), delta)
+    assertEquals(1.0 / 7.0, frequencyInString('3', "1111223"), delta)
+    assertEquals(0.0, frequencyInString('4', "1111223"), delta)
+  }
+
+  /**
+   * Test de charIsInList()
+   */
+  @Test
+  def testCharIsInList() {
+    assert(!charIsInList('a', Nil))
+    assert(charIsInList('a', 'a' :: Nil))
+    assert(charIsInList('b', 'a' :: 'a' :: 'c' :: 'b' :: 'd' :: Nil))
+    assert(!charIsInList('z', 'a' :: 'a' :: 'c' :: 'b' :: 'd' :: Nil))
+  }
+
+  /**
+   * Test de reduceToUniqueChars()
+   */
+  @Test
+  def testReduceToUniqueChars() {
+    assertEquals(Nil, reduceToUniqueChars(Nil))
+    assertEquals('a' :: Nil, reduceToUniqueChars('a' :: 'a' :: 'a' :: 'a' :: Nil))
+    assertEquals('a' :: 'b' :: 'c' :: Nil, reduceToUniqueChars(
+      'a' :: 'b' :: 'c' :: 'a' :: 'b' :: 'c' :: 'a' :: 'b' :: 'c' :: Nil))
+  }
+
+  /**
+   * Test de listOfCharToListOfCharAndFrequencies()
+   */
+  @Test
+  def testListOfCharToListOfCharAndFrequencies() {
+    assertEqualsListCharDouble(Nil, listOfCharToListOfCharAndFrequencies(Nil, "a"), delta)
+    assertEqualsListCharDouble(
+      ('z', 0.0) :: ('w', 0.0) :: ('x', 0.0) :: Nil,
+      listOfCharToListOfCharAndFrequencies('z' :: 'w' :: 'x' :: Nil, "abcdefghijklmnopqrstuvy"), delta)
+
+    assertEqualsListCharDouble(('a', 0.333) :: ('b', 0.333) :: ('c', 0.333) :: Nil,
+        listOfCharToListOfCharAndFrequencies('a' :: 'b' :: 'c' :: Nil, "abcabcabc"), delta)
+        
+    assertEqualsListCharDouble(('1', 4.0 / 7.0) :: ('2', 2.0 / 7.0) :: ('3', 1.0 / 7.0) :: Nil,
+        listOfCharToListOfCharAndFrequencies('1' :: '2' :: '3' :: Nil, "1111223"), delta)
+  }
+
+  /**
    * Test de analyseFrequences()
    */
   @Test
   def testAnalyseFrequences() {
-    val delta = 0.01
-
     assertEquals(Nil, analyseFrequences(""))
     assertEqualsListCharDouble(('a', 1.0) :: Nil, analyseFrequences("aaaaaaaa"), delta)
     assertEqualsListCharDouble(('a', 0.333) :: ('b', 0.333) :: ('c', 0.333) :: Nil, analyseFrequences("abcabcabc"), delta)
@@ -335,7 +463,7 @@ class TestsHuffman {
    */
   @Test
   def testDescriptionHuffman() {
-    assertEquals("0" + vers16Bits("a"), descriptionHuffman(Feuille(0.0, 'a')))
+    assertEquals(zero_string + vers16Bits("a"), descriptionHuffman(Feuille(0.0, 'a')))
 
     val h1 = Noeud(
       1.00,
@@ -345,7 +473,7 @@ class TestsHuffman {
         Feuille(0.25, 'a'),
         Feuille(0.25, 'b')))
 
-    val expected_1 = "1" + "0" + vers16Bits("c") + "1" + "0" + vers16Bits("a") + "0" + vers16Bits("b")
+    val expected_1 = one_string + zero_string + vers16Bits("c") + one_string + zero_string + vers16Bits("a") + zero_string + vers16Bits("b")
 
     assertEquals(expected_1, descriptionHuffman(h1))
 
@@ -369,18 +497,42 @@ class TestsHuffman {
             Feuille(0.06, 'g')),
           Feuille(0.09, 'e'))))
 
-    val expected_2 = "1" + "1" + "0" + vers16Bits("a") + "1" + "0" + vers16Bits("c") + "0" + vers16Bits("d") + "1" +
-      "0" + vers16Bits("b") + "1" + "1" + "0" + vers16Bits("f") + "0" + vers16Bits("g") + "0" + vers16Bits("e")
+    val expected_2 = one_string + one_string + zero_string + vers16Bits("a") + one_string + zero_string + vers16Bits("c") +
+      zero_string + vers16Bits("d") + one_string +
+      zero_string + vers16Bits("b") + one_string + one_string + zero_string + vers16Bits("f") + zero_string + vers16Bits("g") + zero_string + vers16Bits("e")
 
     assertEquals(expected_2, descriptionHuffman(h2))
   }
 
   /**
-   * Test de descriptionHuffman()
+   * Test de descriptionEncodet()
    */
   @Test
   def testEncode() {
     assertEquals(true, true)
+  }
+
+  /**
+   * Test de takeBitList()
+   */
+  @Test
+  def testTakeBitList() {
+    assertEquals(Nil, takeBitList(0, Nil))
+    assertEquals(Nil, takeBitList(1, Nil))
+    assertEquals(One :: Nil, takeBitList(1, One :: Zero :: Nil))
+    assertEquals(One :: Zero :: Nil, takeBitList(16, One :: Zero :: Nil))
+  }
+
+  /**
+   * Test de dropBitList()
+   */
+  @Test
+  def testDropBitList() {
+    assertEquals(Nil, dropBitList(0, Nil))
+    assertEquals(Nil, dropBitList(1, Nil))
+    assertEquals(Nil, dropBitList(1, One :: Nil))
+    assertEquals(Zero :: Nil, dropBitList(1, One :: Zero :: Nil))
+    assertEquals(Nil, dropBitList(16, One :: Zero :: Nil))
   }
 
   /**
@@ -397,5 +549,9 @@ class TestsHuffman {
   @Test
   def testDecode2() {
 
+  }
+
+  def testFrom16Bits() {
+    // TODO: testFrom16Bits()
   }
 }

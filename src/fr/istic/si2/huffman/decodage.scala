@@ -35,11 +35,22 @@ object Decodage {
     (h, l) match {
       case (Feuille(_, c), list) => (Some(c), list)
       case (Noeud(_, zero, one), head :: tail) => {
-        if (head == Zero) {
+        val (sym, new_tail) = (if (head == Zero) {
           decodeSymbol(zero, tail)
         } else {
           decodeSymbol(one, tail)
+        })
+
+        sym match {
+          case None    => (None, tail)
+          // In case the character cannot be decoded,
+          // we return the list of bits with the first bit removed
+          // instead of consuming the whole list.
+          // TODO: Do we really want this ? Seems likely that an already too short list
+          // remains too short, although not certain
+          case Some(_) => (sym, new_tail)
         }
+
       }
       case (Noeud(_, _, _), Nil) => (None, Nil)
     }
@@ -50,22 +61,55 @@ object Decodage {
    * @param h un arbre de Huffman
    * @return la chaîne correspondant au décodage de l, selon h, si elle existe
    */
-  // TODO: fix this: should have none case
+  // TODO: Justifier les choix
   def decode(l: List[Bit], h: Huffman): Option[String] = {
     val (sym, tail) = decodeSymbol(h, l)
 
-    sym.map(c => c.toString).map(head => decode(tail, h).map(ttail => head + ttail)).flatten
-    
-//    Some(sym.map(c => "" + c).getOrElse("") + (tail match {
-//      case Nil  => ""
-//      case t @ _ => decode(t, h).getOrElse("")
-//    }))
-//    tail match {
-//      case Nil => None
-//      case t @ _ => {
-//        sym.map(c => c.ToString)
-//      }
-//    }
+    println(l + " decoded: " + sym + " tail: " + tail)
+    val tail_string = tail match {
+      case Nil    => None
+      case _ :: _ => decode(tail, h)
+    }
+    println(tail_string)
+
+    (sym, tail_string) match {
+      case (Some(c), Some(string)) => Some(c + string)
+      case (Some(c), None)         => Some(c.toString) // If only the first char can be decoded take it
+      case (None, Some(string))    => Some(string) // Or if the first char cannot be decoded but the rest can, take the rest
+      case (None, None)            => None // But if neither can be decoded, no string is created
+    }
+  }
+
+  /**
+   * @param n un entier positif ou nul
+   * @param l une liste de Bit
+   * @return La liste constituée des `n` premiers éléments de `l` au maximum
+   */
+  def takeBitList(n: Int, l: List[Bit]): List[Bit] = {
+    l match {
+      case Nil => Nil
+      case head :: tail => if (n != 0) {
+        head :: takeBitList(n - 1, tail)
+      } else {
+        Nil // early return.
+      }
+    }
+  }
+
+  /**
+   * @param n un entier positif ou nul
+   * @param l une liste de Bit
+   * @return La liste `l` privée de ces `n`, au maximum, premiers éléments
+   */
+  def dropBitList(n: Int, l: List[Bit]): List[Bit] = {
+      l match {
+        case Nil => Nil
+        case head :: tail => if (n != 0) { 
+            dropBitList(n - 1, tail)
+          } else {
+            head :: dropBitList(0, tail)
+          }
+      }
   }
 
   /**
@@ -77,7 +121,7 @@ object Decodage {
   def lireDescription(l: List[Bit]): (Huffman, List[Bit]) = {
     l match {
       case Zero :: tail =>
-        (Feuille(0.0, from16Bits(listBitToString(tail.take(16)))), tail.drop(16))
+        (Feuille(0.0, from16Bits(listBitToString(takeBitList(16, tail)))), dropBitList(16, tail))
 
       case One :: tail => {
         val (zero, leftover) = lireDescription(tail)
@@ -96,8 +140,10 @@ object Decodage {
    */
   def decode(messageEnc: String): String = {
     val (arbre, message) = lireDescription(stringToListBit(messageEnc))
-    
-    decode(message, arbre).getOrElse("")
-  }
 
+    decode(message, arbre) match {
+      case None          => ""
+      case Some(decoded) => decoded
+    }
+  }
 }

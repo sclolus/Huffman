@@ -47,7 +47,10 @@ object Encodage {
   def encodeList(l: List[Char], h: Huffman): List[Bit] = {
     l match {
       case Nil          => List()
-      case head :: tail => encodeSymbol(head, h).getOrElse(List()) ++ encodeList(tail, h)
+      case head :: tail => (encodeSymbol(head, h) match {
+        case None => Nil // Simply ignore unencodable characters
+        case Some(l) => l
+      }) ++ encodeList(tail, h)
     }
   }
 

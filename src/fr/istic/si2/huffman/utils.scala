@@ -1,7 +1,6 @@
 package fr.istic.si2.huffman
 
 import scala.io.Source
-import annotation.tailrec // Let's make tail recursion...
 import java.io.{ File, PrintWriter }
 
 object Utils {
@@ -11,23 +10,14 @@ object Utils {
    * @return la chaîne de 0 et 1 où chaque bit de l est représenté par 0 ou 1, dans l'ordre
    */
   def listBitToString(l: List[Bit]): String = {
-    @tailrec
-    def listBitToStringTailRecursive(l: List[Bit], acc: String): String = {
-      l match {
-        case Nil => acc
-        case head :: tail => {
-          val head_value = if (head == Zero) {
-            "0"
-          } else {
-            "1"
-          }
-
-          listBitToStringTailRecursive(tail, acc + head_value)
-        }
-      }
+    l match {
+      case Nil => ""
+      case head :: tail => (if (head == Zero) {
+        "0"
+      } else {
+        "1"
+      }) + listBitToString(tail)
     }
-
-    listBitToStringTailRecursive(l, "")
   }
 
   /**
@@ -50,6 +40,7 @@ object Utils {
         case head :: tail => ((if (head == '1') { 1 } else { 0 }) + 2 * conversion(tail)).toChar
       }
     }
+    // TODO: Custom reverse implementation ?
     conversion(s.toList.reverse)
   }
 

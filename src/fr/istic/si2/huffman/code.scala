@@ -72,16 +72,16 @@ object ConstructionCode {
    * @return la liste obtenue après avoir fusionné les 2 arbres de l de fréquences minimales
    */
   def uneFusion(l: List[Huffman]): List[Huffman] = {
-    l match {
+    triSelonFreq(l) match { // Which means uneFusion also sorts.
       case first :: second :: tail => {
         val freq_first = getFreq(first)
         val freq_second = getFreq(second)
 
         Noeud(freq_first + freq_second, first, second) :: tail
       }
-      case Nil          => List() // Shall never happen
-      case head :: tail => List() // Shall never Happen
-    } // TODO: Here triSelonFreq should be called
+      case Nil          => List() // Shall never happen by specs
+      case head :: tail => List() // Shall never Happen by specs
+    }
   }
 
   /**
@@ -90,9 +90,9 @@ object ConstructionCode {
    *         et 2 par 2, les arbres de l de fréquences minimales
    */
   def fusion(l: List[Huffman]): Huffman = {
-    l match { // TODO : Here triSelonFreq should not be called
+    l match {
       case last :: Nil => last
-      case _           => fusion(uneFusion(triSelonFreq(l)))
+      case _           => fusion(uneFusion(l))
     }
   }
 
@@ -105,14 +105,85 @@ object ConstructionCode {
   }
 
   /**
+   * @param c un Char
+   * @param list une liste de Char
+   * @return le nombre d'occurence de `c` dans `list`
+   */
+  def countInstancesOf(c: Char, list: List[Char]): Int = {
+    list match {
+      case Nil          => 0
+      case head :: tail => (if (c == head) { 1 } else { 0 }) + countInstancesOf(c, tail)
+      // Note that the parenthesis are actually necessary here since the compiler's parser
+      // would interpret ```... { 0 } + countInstancesOf(c, tail)``` as
+      // ``` { 0 + countInstancesOf(c, tail) } ``` which would not be
+      // the meaning intended.
+    }
+  }
+
+  /**
    * @param c un charactere
    * @param s une chaine de charactere
    * @return la frequence de `c` dans `s`
    */
   def frequencyInString(c: Char, s: String): Double = {
-    s.toList.count((current_c) => c == current_c).asInstanceOf[Double] / s.length.asInstanceOf[Double]
+    val count = countInstancesOf(c, s.toList)
+    
+    if (s.length == 0) {
+      0.0 // Let's avoid floating point division by zero
+          // The frequency of any char in a null String is zero anyway.
+    } else {
+      count.asInstanceOf[Double] / s.length.asInstanceOf[Double]
+    }
   }
-  
+
+  /**
+   * @param char un Char
+   * @param list une liste de Char
+   * @return si `char` se trouve dans `list`
+   */
+  def charIsInList(char: Char, list: List[Char]): Boolean = {
+    list match {
+      case Nil          => false
+      case head :: tail => char == head || charIsInList(char, tail)
+    }
+  }
+
+  /**
+   * @param chars une liste de Char
+   * @return la liste `chars` où tous les caractères apparaissent
+   * une unique fois dans l'ordre original
+   */
+  def reduceToUniqueChars(chars: List[Char]): List[Char] = {
+    def reduce(chars: List[Char], acc: List[Char]): List[Char] = {
+      chars match {
+        case Nil => acc
+        case head :: tail => if (charIsInList(head, acc)) { // Gotta love n^2 complexity huh...
+          reduce(tail, acc)
+        } else {
+          reduce(tail, acc ++ List(head))
+        }
+      }
+    }
+    reduce(chars, Nil)
+  }
+
+  /**
+   * @param l une liste de Char
+   * @param reference_string une String
+   * @return La liste `l` transformée en une liste ayant
+   * pour chaque caractère sa fréquence associée dans la String `reference_string`
+   */
+  def listOfCharToListOfCharAndFrequencies(l: List[Char], reference_string: String): List[(Char, Double)] = {
+    // Naming is getting out of hand... Blame the absence of higher-order fonctions
+    // lambdas and generics ; Leading to inelegant and semantically redundant code.
+
+    l match {
+      case Nil => Nil
+      case head :: tail => (head, frequencyInString(head, reference_string)) ::
+        listOfCharToListOfCharAndFrequencies(tail, reference_string)
+    }
+  }
+
   /**
    * @param s une chaîne de caractères
    * @return la liste des couples (caractère, fréquence d'apparition),
@@ -121,7 +192,7 @@ object ConstructionCode {
    *         d'apparition dans s.
    */
   def analyseFrequences(s: String): List[(Char, Double)] = {
-    s.toList.map((c) => (c, frequencyInString(c, s)))
+    listOfCharToListOfCharAndFrequencies(reduceToUniqueChars(s.toList), s)
   }
 
 }

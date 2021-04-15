@@ -9,7 +9,8 @@ import Utils._
  * Application principale V0 : arbre de code fixé, encodage/décodage de caractères
  */
 object HuffmanApp0 extends App {
-
+ // TODO: Does this demonstrate all the features ?
+  
   /**
    * Arbre de code utilisé par l'application principale
    */

@@ -30,6 +30,7 @@ object HuffmanApp2 extends App {
    * @return si la boucle doit continuer
    */
   def mainLoop(): Boolean = {
+      // TODO: Does this demonstrate all the features ?
     println("Fichier à encoder ? ")
     val filename_to_encode = StdIn.readLine()
 
@@ -57,7 +58,7 @@ object HuffmanApp2 extends App {
     val again_char = StdIn.readChar()
 
     (again_char match {
-      case 'Y' | 'y' => true // actually does nothing...
+      case 'Y' | 'y' => true
       case _         => false
     })
   }

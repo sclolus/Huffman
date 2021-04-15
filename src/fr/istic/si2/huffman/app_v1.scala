@@ -39,6 +39,7 @@ object HuffmanApp1 extends App {
    * @return Si la boucle doit continuer
    */
   def mainLoop(): Boolean = {
+     // TODO: Does this demonstrate all the features ?
     println("Chaîne à encoder ? ")
     val string_to_encode = StdIn.readLine()
 

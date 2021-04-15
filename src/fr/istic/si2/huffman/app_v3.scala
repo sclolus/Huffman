@@ -10,6 +10,7 @@ import ConstructionCode._
  * Application principale V3 : avec transmission du code
  */
 object HuffmanApp3 extends App {
+  // TODO: Does this demonstrate all the features ?
 
   /**
    * @return si la boucle doit continuer
@@ -44,7 +45,7 @@ object HuffmanApp3 extends App {
     val again_char = StdIn.readChar()
 
     (again_char match {
-      case 'Y' | 'y' => true // actually does nothing...
+      case 'Y' | 'y' => true
       case _         => false
     })
   }
