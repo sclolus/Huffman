@@ -30,21 +30,6 @@ object Utils {
   }
 
   /**
-   * @param s une chaine de caractere représentant un Char par une succession de 1 et de 0
-   * @return le Char representé par `s`
-   */
-  def from16Bits(s: String): Char = {
-    def conversion(l: List[Char]): Char = {
-      l match {
-        case Nil          => 0
-        case head :: tail => ((if (head == '1') { 1 } else { 0 }) + 2 * conversion(tail)).toChar
-      }
-    }
-    // TODO: Custom reverse implementation ?
-    conversion(s.toList.reverse)
-  } // TODO: Is from16Bits really necessary ?
-
-  /**
    * Lit le contenu d'un fichier sur disque.
    *
    * @param nom le nom d'un fichier

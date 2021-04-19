@@ -20,10 +20,7 @@ object ConstructionCode {
    * @return la liste `l` avec `n` inséré de telle manière à ce que la liste soit triée
    */
   def insertionHuffman(n: Huffman, l: List[Huffman]): List[Huffman] = {
-    val f = n match {
-      case Feuille(f, _)  => f
-      case Noeud(f, _, _) => f
-    }
+    val f = getFreq(n)
 
     l match {
       case Nil => List(n)
@@ -79,8 +76,10 @@ object ConstructionCode {
 
         Noeud(freq_first + freq_second, first, second) :: tail
       }
-      case Nil          => List() // Shall never happen by specs
-      case head :: tail => List() // Shall never Happen by specs
+      
+      // case Nil | head :: Nil shall never happen by specs.
+      // But we still want to avoid any warning for a non-exhaustive match
+      case _                      => List()
     }
   }
 
@@ -97,10 +96,14 @@ object ConstructionCode {
   }
 
   /**
-   * @param freqs une liste de couples caractère/fréquence
+   * @param freqs une liste NON VIDE de couples caractère/fréquence
    * @return l'arbre de code de Huffman correspondant à freqs
    */
   def codeHuffman(freqs: List[(Char, Double)]): Huffman = {
+    // `freqs` is a non-empty list.
+    // The original specification was modified has it did not seem
+    // to make much sense otherwise : I do not want to
+    // create a fake Huffman tree in the case of an empty frequency list.
     fusion(initHuffman(freqs))
   }
 
@@ -174,7 +177,7 @@ object ConstructionCode {
    * pour chaque caractère sa fréquence associée dans la String `reference_string`
    */
   def listOfCharToListOfCharAndFrequencies(l: List[Char], reference_string: String): List[(Char, Double)] = {
-    // Naming is getting out of hand... Blame the absence of higher-order fonctions
+    // Naming is getting out of hand... Blame the absence of higher-order fonctions,
     // lambdas and generics ; Leading to inelegant and semantically redundant code.
 
     l match {
@@ -194,5 +197,4 @@ object ConstructionCode {
   def analyseFrequences(s: String): List[(Char, Double)] = {
     listOfCharToListOfCharAndFrequencies(reduceToUniqueChars(s.toList), s)
   }
-
 }

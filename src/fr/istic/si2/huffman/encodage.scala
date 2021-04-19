@@ -29,12 +29,6 @@ object Encodage {
         }
       }
     }
-        //    h match {
-    //      case Feuille(_, ce) => if (ce == c) { Some(List()) } else { None }
-    //      case Noeud(_, zero, one) => encodeSymbol(c, zero)
-    //           .map(list => Zero :: list)
-    //           .orElse(encodeSymbol(c, one).map(list => One :: list))
-    //    }
   }
 
   /**
@@ -43,12 +37,16 @@ object Encodage {
    * @return la séquence de bits correspondants à
    *         l'encodage selon h des éléments de l, s'il a réussi.
    *         Les caractères pour lesquels l'encodage est impossible sont oubliés
+   *         Dans le cas d'un arbre h constitué d'une seule feuille,
+   *         Le liste resultant est une liste de Bit quelconque
+   *         de meme taille que la liste `l`
    */
   def encodeList(l: List[Char], h: Huffman): List[Bit] = {
     l match {
       case Nil          => List()
       case head :: tail => (encodeSymbol(head, h) match {
         case None => Nil // Simply ignore unencodable characters
+        case Some(Nil) => Zero :: Nil // Special case for single-leafed Huffman trees
         case Some(l) => l
       }) ++ encodeList(tail, h)
     }

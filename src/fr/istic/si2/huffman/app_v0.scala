@@ -32,7 +32,7 @@ object HuffmanApp0 extends App {
           Feuille(0.06, 'g')),
         Feuille(0.09, 'e'))))
 
-  while (42 == 42) {
+  while (true) {
     print("Veuillez entrer un caractère à encodé: ")
     val char: Char = StdIn.readChar()
 
